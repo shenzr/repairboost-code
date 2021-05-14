@@ -1,0 +1,11 @@
+**/.DS_Store
+ECClient
+ECCoordinator
+ECHelper
+
+obj/*
+
+src/*.swp
+src/*/*.swp
+
+.vscode/
