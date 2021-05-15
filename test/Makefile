@@ -33,5 +33,5 @@ $(OBJ_DIR)/J_%.o : $(UTIL_SRC_DIR)/%.c $(UTIL_SRC_DIR)/%.h
 	$(JCC) $(CFLAGS) -o $@ -c $<
 
 clean :
-	rm -rf createdata_rs createdata_lrc createdata_butterfly obj/
+	rm -rf createdata_rs createdata_lrc createdata_butterfly obj/*
 

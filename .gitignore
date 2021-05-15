@@ -1,9 +1,15 @@
 **/.DS_Store
+
 ECClient
 ECCoordinator
 ECHelper
+createdata_rs
+createdata_lrc
+createdata_butterfly
 
 obj/*
+meta/*
+test/obj/*
 
 src/*.swp
 src/*/*.swp

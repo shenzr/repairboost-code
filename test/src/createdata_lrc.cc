@@ -85,13 +85,13 @@ int main(int argc, char *argv[]) {
     // write data into blocks
     for (int i = 1; i <= k; i++) {
         char *blockname = (char *)malloc(sizeof(char) * 20);
-        sprintf(blockname, "../meta/file_k%d", i);
+        sprintf(blockname, "file_k%d", i);
         FILE *blockfile = fopen(blockname, "wb");
         fwrite(data[i - 1], sizeof(char), blocksize, blockfile);
     }
     for (int i = 1; i <= l+g; i++) {
         char *blockname = (char *)malloc(sizeof(char) * 20);
-        sprintf(blockname, "../meta/file_m%d", i);
+        sprintf(blockname, "file_m%d", i);
         FILE *blockfile = fopen(blockname, "wb");
         fwrite(coding[i - 1], sizeof(char), blocksize, blockfile);
     }

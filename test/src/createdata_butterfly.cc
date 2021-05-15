@@ -61,6 +61,13 @@ void usage() {
 }
 
 int main(int argc, char *argv[]) {
+    // check number of arguments
+    if (argc != 2) {
+        cout << "bad number of input arguments!" << endl;
+        usage();
+        return -1;
+    }
+    
     int k = 4, n = 6, m = 2, alpha = 8;
     int* encMat = generate_encoding_matrix(k, n, alpha);
 
@@ -115,13 +122,13 @@ int main(int argc, char *argv[]) {
     // write data into blocks
     for (int i = 1; i <= k; i++) {
         char *blockname = (char *)malloc(sizeof(char) * 20);
-        sprintf(blockname, "../meta/file_k%d", i);
+        sprintf(blockname, "file_k%d", i);
         FILE *blockfile = fopen(blockname, "wb");
         fwrite(data[i - 1], sizeof(char), blocksize, blockfile);
     }
     for (int i = 1; i <= m; i++) {
         char *blockname = (char *)malloc(sizeof(char) * 20);
-        sprintf(blockname, "../meta/file_m%d", i);
+        sprintf(blockname, "file_m%d", i);
         FILE *blockfile = fopen(blockname, "wb");
         fwrite(coding[i - 1], sizeof(char), blocksize, blockfile);
     }
