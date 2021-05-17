@@ -1,26 +1,12 @@
 # RepairBoost
 
 This is the implementation of RepairBoost described in our paper "Boosting Full-Node Repair in Erasure-Coded Storage" appeared in USENIX ATC'21. RepairBoost is a scheduling framework that can assist existing linear erasure codes and repair algorithms to boost the full-node repair performance. 
-
 Please contact [linesyoo@gmail.com](mailto:linesyoo@gmail.com) if you have any questions.
 
-## Table of Contents
-
-- [Install](#install)
-  - [Common](#common)
-  - [Compile RepairBoost](#compile-repairboost)
-- [Standalone Test](#standalone-test)
-  - [Prerequisites](#prerequisites)
-  - [Run](#run)  
-- [Hadoop-3 Integration](#Hadoop-3 Integration)
-  - [Prerequisites](#header-n181)
-  - [Hadoop Configuration](#hadoop-configuration)
-  - [Run](#header-n302)  
-
-## Install
+## 1. Install
 
 We have tested RepairBoost on Ubuntu16.04 LTS.
- ### Common
+ ### 1.1 Common
 
   - g++ & make & libtool & autoconf & git
 
@@ -77,7 +63,7 @@ Download redis-3.2.8 and install it.
   $ make && sudo make install
   ```
 
-### Compile RepairBoost
+### 1.2 Compile RepairBoost
 
   After finishing the preparations above, download and compile the source code.
 
@@ -87,9 +73,9 @@ Download redis-3.2.8 and install it.
   ```
 
 
- ## Standalone Test
+ ## 2. Standalone Test
 
- ### Prerequisites
+ ### 2.1 Prerequisites
 
  #### Configuration File
 
@@ -155,7 +141,7 @@ stripe_0_file_k1_1001:stripe_0_file_k2_1001:stripe_0_file_k3_1001:stripe_0_file_
 
 The file name rs:file_k1_1001 means that the chunk uses Reed-Solomon (RS) code and the chunk name is file_k1. The tail 1001 (resp. 1002) means the chunk is an uncoded chunk (resp. coded chunk).
 
-### Run
+### 2.2 Run
 
 #### Start RepairBoost
 
@@ -189,9 +175,9 @@ $ python scripts/stop.py
 
 
 
- ## Hadoop-3 Integration
+ ## 3. Hadoop-3 Integration
 
-### Prerequisites
+### 3.1 Prerequisites
 
 - isa-l
 
@@ -304,7 +290,7 @@ Edit repairboostcode/hadoop-3.1.4-integrate/install.sh with the proper directory
 $ ./install.sh
 ```
 
-### Hadoop Configuration
+### 3.2 Hadoop Configuration
 
 The following shows an example to configure Hadoop-3.1.4 with 6 nodes.
 
@@ -359,8 +345,8 @@ This file contains multiple lines, each of which is a DataNode IP address.
 192.168.0.206
 ```
 
-### Run
-### Start Hadoop
+### 3.3 Run
+#### Start Hadoop
 
 - Format the Hadoop cluster.
 
@@ -412,7 +398,7 @@ $ cd repairboost-code
 $ python scripts/start.py
 ```
 
-#### Full-node Recovery Test
+#### Full-node Repair Test
 
 - Stop a datanode in Hadoop.
 ```
