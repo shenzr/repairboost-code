@@ -1,27 +1,26 @@
 # RepairBoost
 
+This is the implementation of RepairBoost described in our paper "Boosting Full-Node Repair in Erasure-Coded Storage" appeared in USENIX ATC'21. RepairBoost is a scheduling framework that can assist existing linear erasure codes and repair algorithms to boost the full-node repair performance. 
+
+Please contact [linesyoo@gmail.com](mailto:linesyoo@gmail.com) if you have any questions.
+
 ## Table of Contents
 
 - [Install](#install)
-
-- [Standalone Test of RepairBoost](#standalone-test-of-repairBoost)
-
+  - [Common](#common)
+  - [Compile RepairBoost](#compile-repairboost)
+- [Standalone Test](#standalone-test)
   - [Prerequisites](#prerequisites)
-    - [Configuration File](#configuration-file)
-    - [Encoding Matrix File](#encoding-matrix-file)
-    - [Create Erasure-Coded Chunks](#Create-Erasure-Coded-Chunks)
   - [Run](#run)  
-    - [Start RepairBoost](#Start-RepairBoost)
-    - [Test](#full-node-repair-test)
-    - [Stop RepairBoost](#Stop-RepairBoost)
+- [Hadoop-3 Integration](#Hadoop-3 Integration)
+  - [Prerequisites](#header-n181)
+  - [Hadoop Configuration](#hadoop-configuration)
+  - [Run](#header-n302)  
 
+## Install
 
-
-  ## Install
-
-  We have tested RepairBoost on Ubuntu16.04 LTS.
-
-  ### Common
+We have tested RepairBoost on Ubuntu16.04 LTS.
+ ### Common
 
   - g++ & make & libtool & autoconf & git
 
@@ -39,7 +38,7 @@
 
   - redis-3.2.8
 
-  Download redis-3.2.8 and install it.
+Download redis-3.2.8 and install it.
 
   ```
   $ sudo wget http://download.redis.io/releases/redis-3.2.8.tar.gz
@@ -78,7 +77,7 @@
   $ make && sudo make install
   ```
 
-  ### Compile RepairBoost
+### Compile RepairBoost
 
   After finishing the preparations above, download and compile the source code.
 
@@ -88,8 +87,7 @@
   ```
 
 
-
- ## Standalone Test of RepairBoost
+ ## Standalone Test
 
  ### Prerequisites
 
@@ -99,7 +97,7 @@
 
 | Property  | Description |
 | ---- | ---- |
-| erasure.code.type | Three types are implemented: RS, LRC, and BUTTERFLY (only $n$=6, $k$=4). |
+| erasure.code.type | Three types are implemented: RS, LRC, and BUTTERFLY (only n=6, k=4). |
 | erasure.code.k      | The number of data chunks.  |
 | erasure.code.n     |  Total number of chunks in a stripe.    |
 | lrc.code.l   |  The number of groups, only valid in LRC. Default is 0.    |
@@ -116,11 +114,16 @@
 
  #### Encoding Matrix File
 
- For RS codes and LRC codes, we read the encoding coefficients from the encoding matrix file. The file contains an (n-k)*k matrix that specifies the coefficients for generating n-k parity chunks from k data chunks. 
+ For RS codes and LRC codes, we read the encoding coefficients from the encoding matrix file. The file contains an (n-k)×k matrix that specifies the coefficients for generating n-k parity chunks from k data chunks. 
 
-For example, the file repairboost-code/conf/rsEncMat_6_9 shows a encoding matrix for RS (9, 6) (n=9, k=6).
+The file repairboost-code/conf/rsEncMat_6_9 shows a encoding matrix for RS(9, 6) (n=9, k=6):
 
 ![](https://tva1.sinaimg.cn/large/008i3skNly1gqj77wox3uj327c0cuq5k.jpg)
+
+Our example uses the file repairboost-code/conf/rsEncMat_3_4 to construct a simple coding matrix for RS(4, 3)(n=4, k=3):
+
+![](https://tva1.sinaimg.cn/large/008i3skNly1gqlaf86jc0j31jo02agli.jpg)
+
 
  #### Create Erasure-Coded Chunks
 
@@ -129,25 +132,25 @@ Before testing our standalone system, we need to create stripes of erasure-coded
 ```
 $ cd repairboost-code/test
 $ make
-$ dd if=/dev/urandom iflag=fullblock of=input.txt bs=64M count=6
-$ ./createdata_rs ../conf/rsEncMat_6_9 input.txt 6 9
+$ dd if=/dev/urandom iflag=fullblock of=input.txt bs=64M count=3
+$ ./createdata_rs ../conf/rsEncMat_3_4 input.txt 3 4
 ```
 
 For more detail, you can run the command ./createdata_rs (or ./createdata_lrc, etc.) to get the usage of the programs.
 
-Take RS(6, 4) (n=6, k=4) as an example. In repairboost-code/test, we create 4 files of uncoded chunks and 2 files of coded chunks. We can distribute the 6 chunks across 6 nodes, each of which stores one chunk under the path specified by block.directory. The coordinator stores the stripe metadata under the path specified by meta.stripe.dir. 
+Take RS(4, 3) (n=4, k=3) as an example. In repairboost-code/test, we create 3 files of uncoded chunks and 1 file of coded chunks. We can distribute the 4 chunks across 4 nodes, each of which stores one chunk under the path specified by block.directory. The coordinator stores the stripe metadata under the path specified by meta.stripe.dir. 
 
 The naming of data files and metadata should meet the requirements. If there are 2 stripes, the data of the stripes are named as follows:
 
 ```
-stripe_0_file_k1   stripe_0_file_k2   stripe_0_file_k3   stripe_0_file_k4   stripe_0_file_m1   stripe_0_file_m2 
-stripe_1_file_k1   stripe_1_file_k2   stripe_1_file_k3   stripe_1_file_k4   stripe_1_file_m1   stripe_1_file_m2 
+stripe_0_file_k1   stripe_0_file_k2   stripe_0_file_k3   stripe_0_file_m1   
+stripe_1_file_k1   stripe_1_file_k2   stripe_1_file_k3   stripe_1_file_m1   
 ```
 
-The coordinator stores 6 files:   rs:stripe_0_file_k1_1001, rs:stripe_0_file_k2_1001, rs:stripe_0_file_k3_1001, rs:stripe_0_file_k4_1001, rs:stripe_0_file_m1_1002 and rs:stripe_0_file_m2_1002, all of which have the following content:
+The coordinator stores 4 files for each stripe:   rs:stripe_0_file_k1_1001, rs:stripe_0_file_k2_1001, rs:stripe_0_file_k3_1001 and rs:stripe_0_file_m1_1002, all of which have the following content:
 
 ```
-stripe_0_file_k1_1001:stripe_0_file_k2_1001:stripe_0_file_k3_1001:stripe_0_file_k4_1001:stripe_0_file_m1_1002:stripe_0_file_m2_1002
+stripe_0_file_k1_1001:stripe_0_file_k2_1001:stripe_0_file_k3_1001:stripe_0_file_m1_1002
 ```
 
 The file name rs:file_k1_1001 means that the chunk uses Reed-Solomon (RS) code and the chunk name is file_k1. The tail 1001 (resp. 1002) means the chunk is an uncoded chunk (resp. coded chunk).
@@ -186,5 +189,248 @@ $ python scripts/stop.py
 
 
 
+ ## Hadoop-3 Integration
 
+### Prerequisites
+
+- isa-l
+
+```
+$ git clone https://github.com/01org/isa-l.git
+$ cd isal
+$ ./autogen.sh && ./configure && make && sudo make install
+```
+
+- java8
+
+```
+$ sudo apt-get purge openjdk*
+$ sudo apt-get install software-properties-common
+$ sudo add-apt-repository  ppa:ts.sch.gr/ppa 
+$ sudo apt-get update 
+$ sudo apt-get install oracle-java8-installer  
+$ sudo apt install oracle-java8-set-default
+```
+
+Then configure the environment variables for java.
+
+```
+export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+export PATH=$JAVA_HOME/bin:$PATH
+```
+
+Test
+
+```
+$ java -version
+java version "1.8.0_212"
+```
+
+- maven 
+
+Download apache-maven-3.5.4 on [available mirror](https://downloads.apache.org/maven/maven-3/3.5.4/binaries/apache-maven-3.5.4-bin.tar.gz).
+
+```
+$ tar -zxvf apache-maven-3.5.4-bin.tar.gz
+$ sudo mv apache-maven-3.5.4 /opt/
+$ sudo ln -s /opt/apache-maven-3.5.4 /opt/apache-maven
+```
+
+Then configure the environment variables for maven.
+
+```
+export MAVEN_HOME=/opt/apache-maven
+export PATH=$MAVEN_HOME/bin:$PATH
+```
+
+Test
+
+```
+$ mvn help:system
+BUILD SUCESS
+```
+
+- protobuf-2.5.0
+
+Download protobuf-2.5.0. (required)
+
+```
+$ tar -zxvf protobuf-2.5.0.tar.gz
+$ cd protobuf-2.5.0
+$ sudo mkdir /usr/local/protoc-2.5.0/
+$ ./configure --prefix=/usr/local/protoc-2.5.0/
+$ make && sudo make install
+```
+
+Then configure the environment variables for maven.
+
+```
+export PROTOC_HOME=/usr/local/protoc-2.5.0
+export PATH=$PROTOC_HOME/bin:$PATH
+```
+
+Test
+
+```
+$ protoc --version
+libprotoc 2.5.0
+```
+
+- hadoop-3.1.4-src
+
+Download hadoop-3.1.4-src on [available mirror](https://apache.01link.hk/hadoop/common/hadoop-3.1.4/hadoop-3.1.4-src.tar.gz).
+
+```
+$ tar -zxvf hadoop-3.1.4-src.tar.gz
+```
+
+Then configure the environment variable.
+
+```
+export HADOOP_SRC_DIR=/path/to/hadoop-3.1.4-src
+export HADOOP_HOME=$HADOOP_SRC_DIR/hadoop-dist/target/hadoop-3.1.4
+export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
+```
+
+Tip: Native libs used to  rebuild hadoop.
+
+```
+$ sudo apt-get -y install build-essential autoconf automake libtool cmake zlib1g-dev pkg-config libssl-dev
+```
+
+Edit repairboostcode/hadoop-3.1.4-integrate/install.sh with the proper directory to where you installed hadoop-3.1.4-src. Then execute the script to rebuild hadoop.
+
+```
+$ ./install.sh
+```
+
+### Hadoop Configuration
+
+The following shows an example to configure Hadoop-3.1.4 with 6 nodes.
+
+| IP Address    | Role in Hadoop | Role in standalone |
+| ------------- | -------------- | ------------------ |
+| 192.168.0.201 | NameNode       | Coordinator        |
+| 192.168.0.202 | DataNode       | Helper  |
+| 192.168.0.203 | DataNode       | Helper  |
+| 192.168.0.204 | DataNode       | Helper  |
+| 192.168.0.205 | DataNode       | Helper  |
+| 192.168.0.206 | DataNode       | Helper  |
+You should modify the following configure files in /path/to/hadoop-3.1.4-src/hadoop-dist/target/hadoop-3.1.1/etc/hadoop.
+- core-site.xml
+
+```
+<property><name>fs.defaultFS</name><value>hdfs://192.168.0.201:9000</value></property>
+<property><name>hadoop.tmp.dir</name><value>/path/to/hadoop-3.1.4</value></property>
+```
+
+- hadoop-env.sh
+
+```
+export JAVA_HOME="/usr/lib/jvm/java-8-oracle" 
+```
+
+- hdfs-site.xml
+
+```
+<property><name>dfs.client.use.datanode.hostname</name><value>true</value></property>
+<property><name>dfs.replication</name><value>1</value></property>
+<property><name>dfs.blocksize</name><value>67108864</value></property>
+<property><name>repairboost.coordinator</name><value>192.168.0.201</value></property>
+<property><name>dfs.datanode.ec.reconstruction.stripedread.buffer.size</name><value>1048576</value></property>
+<property><name>dfs.datanode.ec.repairboost</name><value>true</value></property>
+<property><name>repairboost.packetsize</name><value>1048576</value></property>
+<property><name>repairboost.packetcnt</name><value>64</value></property>
+```
+
+- user_ec_policies.xml
+
+We provide sample configuration for RS-3-1-1024k erasure code policy.
+
+- workers
+
+This file contains multiple lines, each of which is a DataNode IP address.
+
+```
+192.168.0.202
+192.168.0.203
+192.168.0.204
+192.168.0.205
+192.168.0.206
+```
+
+### Run
+### Start Hadoop
+
+- Format the Hadoop cluster.
+
+```
+$ hdfs namenode -format
+$ start-dfs.sh
+$ hdfs dfsadmin -report 
+```
+If the report result indicates that there are 5 DataNodes, then the Hadoop cluster starts correctly.
+
+- Set erasure coding policy.
+
+```
+$ hdfs ec -addPolicies -policyFile /path/to/user_ec_policies.xml
+$ hdfs ec -enablePolicy -policy RS-3-1-1024k
+$ hdfs dfs -mkdir /ec_test
+$ hdfs ec -setPolicy -path /ec_test -policy RS-3-1-1024k
+```
+
+- Write data into HDFS.
+
+```
+$ dd if=/dev/urandom iflag=fullblock of=file.txt bs=64M count=3
+$ hdfs dfs -put file.txt /ec_test/testfile
+```
+
+Check the writed data.
+
+```
+$ hdfs fsck / -files -blocks -locations
+```
+
+#### Start RepairBoost
+
+- Get the directory where the erasure-coded data is stored in Hadoop.
+
+```
+$ ssh datanode
+$ find -name "finalized"
+```
+
+You can ssh to any DataNode to execute the command.
+
+- Modify the value of file.system.type, block.directory, and helpers.address in the configuration file config.xml. 
+
+- Start.
+```
+$ cd repairboost-code
+$ python scripts/start.py
+```
+
+#### Full-node Recovery Test
+
+- Stop a datanode in Hadoop.
+```
+$ ssh datanode
+$ hdfs --daemon stop datanode
+```
+You can ssh to any DataNode to execute the command.
+
+- Check the repaired data.
+
+```
+$ hdfs fsck / -files -blocks -locations
+```
+
+#### Stop
+
+```
+$ stop-dfs.sh
+$ cd repairboost-code && python scripts/stop.py
+```
 
