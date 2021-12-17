@@ -200,6 +200,7 @@ vector<Stripe> LinesDealScheduling::repairboost(int failNodeId, int repair_metho
         edgeMap.clear();
         initGraph(stripes, flag, edgeMap, lostBlkCnt);
         if(!flag) break;
+        ++round;
         max_bd = runISAP();
         vector<pii> up(_slaveCnt), dw(_slaveCnt);
         for(int i=0; i<_slaveCnt; ++i) up[i] = {-1,-1}, dw[i] = {-1, -1};
@@ -592,6 +593,7 @@ vector<Stripe> LinesDealScheduling::heterogeneous(int failNodeId, int repair_met
         edgeMap.clear();
         heterogeneous_init_graph(stripes, flag, edgeMap, lostBlkCnt);
         if(!flag) break;
+        ++round;
         vector<pii> up(_slaveCnt);
         vector<pii> dw(_slaveCnt);
         for(int i=0; i<_slaveCnt; ++i) 
